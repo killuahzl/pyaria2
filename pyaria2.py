@@ -32,6 +32,7 @@ import subprocess
 import xmlrpc.client
 import os
 import time
+import platform
 
 DEFAULT_HOST = 'localhost'
 DEFAULT_PORT = 6800
@@ -402,16 +403,42 @@ class PyAria2(object):
         return self.server.aria2.forceShutdown()
 
 def isAria2Installed():
-    for cmdpath in os.environ['PATH'].split(':'):
-        if os.path.isdir(cmdpath) and 'aria2c' in os.listdir(cmdpath):
-            return True
-
-    return False
-
-def isAria2rpcRunning():
-    pgrep_process = subprocess.Popen('pgrep -l aria2', shell=True, stdout=subprocess.PIPE)
-
-    if pgrep_process.stdout.readline() == b'':
+    if platform.system() == "Windows":
+        for cmdpath in os.environ['PATH'].split(';'):
+            print(cmdpath)
+            if os.path.isdir(cmdpath) and 'aria2c.exe' in os.listdir(cmdpath):
+                return True
+        return False
+    elif platform.system() == 'Linux':
+        for cmdpath in os.environ['PATH'].split(':'):
+            if os.path.isdir(cmdpath) and 'aria2c' in os.listdir(cmdpath):
+                return True
         return False
     else:
-        return True
+        print("not support os {}".format(platform.system()))
+        return False
+
+def isAria2rpcRunning():
+    if platform.system()=="Windows":
+        pgrep_process = subprocess.Popen('tasklist |find /i "aria2"', shell=True, stdout=subprocess.PIPE)
+
+        if pgrep_process.stdout.readline() == b'':
+            return False
+        else:
+            return True
+    elif platform.system()=='Linux':
+        pgrep_process = subprocess.Popen('pgrep -l aria2', shell=True, stdout=subprocess.PIPE)
+
+        if pgrep_process.stdout.readline() == b'':
+            return False
+        else:
+            return True
+    else:
+        print("not support os {}".format(platform.system()))
+        return False
+
+
+if __name__ == '__main__':
+    aa=PyAria2()
+    # aa.addUri(uu)
+    # print(isAria2Installed())
